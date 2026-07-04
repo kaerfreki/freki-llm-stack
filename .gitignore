@@ -1,0 +1,5 @@
+# Local environment overrides (see .env.example files)
+.env
+
+# Logs and scratch output
+*.log

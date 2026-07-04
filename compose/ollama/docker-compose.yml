@@ -1,0 +1,22 @@
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-0.31.1}
+    container_name: freki-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_HOST_PORT:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      # How long a model stays loaded in VRAM after the last request
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  ollama-models:

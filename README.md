@@ -1,0 +1,79 @@
+# freki-llm-stack
+
+Self-hosted LLM inference, done properly: reproducible deployments of
+open-weights models with Ollama (and vLLM, upcoming), from a single
+`docker-compose up` to Kubernetes, with honest benchmarks.
+
+## The problem
+
+Plenty of teams want LLM capabilities but cannot — or do not want to — send
+their data to an external API: confidentiality, data sovereignty, or simply
+cost at scale. Running open-weights models on your own hardware solves that,
+but the ecosystem is a maze of runtimes, quantization formats and GPU plumbing.
+
+This repository is a set of **tested, reproducible recipes** to get from a
+bare Linux box with an NVIDIA GPU to a working, measurable inference endpoint.
+
+## Architecture
+
+Current scope (milestone M1): one Ollama instance serving the OpenAI-compatible
+Ollama API, models persisted in a named volume.
+
+```mermaid
+flowchart LR
+    client([Client / your app]) -->|"HTTP :11434"| ollama
+    subgraph host["Docker host with NVIDIA GPU"]
+        ollama["Ollama container<br/>(ollama/ollama:0.31.1)"] --> vol[("model volume")]
+        ollama -. offloads to .-> gpu[["GPU"]]
+    end
+```
+
+## Quickstart
+
+Prerequisites:
+
+- Linux host with an NVIDIA GPU (tested: RTX 4080 16 GB, driver 595.71,
+  Ubuntu 26.04)
+- Docker Engine with Compose v2 (tested: Docker 29.1.3, Compose 2.40.3)
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+  configured for Docker
+- `curl` and `jq`
+
+```bash
+cd compose/ollama
+docker compose up -d
+../../scripts/smoke-test.sh
+```
+
+The smoke test waits for the API, pulls the default model (`qwen3.5:9b`,
+~6 GB, first run only), sends one completion and prints the answer plus the
+measured generation speed.
+
+### Configuration
+
+Everything is configurable through environment variables — copy
+[`compose/ollama/.env.example`](compose/ollama/.env.example) to `.env` next to
+the compose file and adjust:
+
+| Variable           | Default      | Purpose                                     |
+| ------------------ | ------------ | ------------------------------------------- |
+| `OLLAMA_IMAGE_TAG` | `0.31.1`     | Ollama image version (pinned on purpose)    |
+| `OLLAMA_HOST_PORT` | `11434`      | Host port the API is published on           |
+| `OLLAMA_KEEP_ALIVE`| `5m`         | How long a model stays in VRAM when idle    |
+| `OLLAMA_MODEL`     | `qwen3.5:9b` | Model exercised by the smoke test           |
+
+## Roadmap
+
+- [x] **M1** — Ollama via docker-compose, pinned versions, smoke test
+- [ ] **M2** — Benchmark harness: tokens/s, time-to-first-token, VRAM usage
+      per model × quantization × hardware, auto-generated results table
+- [ ] **M3** — vLLM alongside Ollama, same benchmarks, when-to-pick-which guide
+- [ ] **M4** — Kubernetes manifests (GPU resources, model persistence)
+- [ ] **M5** — Monitoring, reverse proxy with auth, sizing guide
+
+Benchmark numbers published here will always state the exact hardware and
+tool versions they were measured on.
+
+## License
+
+[MIT](LICENSE) — © 2026 Kouzma Petoukhov · [kaerfreki.fr](https://kaerfreki.fr)

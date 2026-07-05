@@ -34,6 +34,14 @@ Measured on **2026-07-05**:
 | `gemma3:12b` | 897 ms | 3531 tok/s | 70.4 tok/s |
 | `qwen3.6:35b` | 1410 ms | 1062 tok/s | 60.1 tok/s |
 
+## Output quality
+
+Quality is a property of the model, not of this stack, so no scores are
+published here — instead, [unedited sample outputs](outputs/) of every
+benchmarked model on four fixed tasks (summarization, structured
+extraction, coding, arithmetic reasoning) are provided for side-by-side
+comparison. Generate them with `scripts/sample-outputs.sh`.
+
 ## Method
 
 - Per model and scenario: 1 discarded warm-up (its load time is the

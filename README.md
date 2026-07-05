@@ -62,10 +62,36 @@ the compose file and adjust:
 | `OLLAMA_KEEP_ALIVE`| `5m`         | How long a model stays in VRAM when idle    |
 | `OLLAMA_MODEL`     | `qwen3.5:9b` | Model exercised by the smoke test           |
 
+## Benchmarks
+
+Full results, hardware details and method: [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md).
+
+The harness ([`scripts/bench.sh`](scripts/bench.sh)) measures, per model:
+
+- **Time to first token** — client-side wall clock on the streaming API
+- **Generation and prompt-processing rates** in tokens/s
+- **Peak VRAM and host RAM**, sampled while requests are in flight
+- **Cold-load time** and how Ollama placed the model (GPU vs CPU)
+
+over two standardized prompts (a short instruction and a ~1,200-token
+document), with a warm-up plus 3 measured runs, medians reported. Reproduce
+with:
+
+```bash
+./scripts/bench.sh run                # full matrix, writes benchmarks/RESULTS.md
+```
+
+| Variable            | Default          | Purpose                                |
+| ------------------- | ---------------- | -------------------------------------- |
+| `BENCH_MODELS`      | the 8 benchmarked | Space-separated list of models to run |
+| `BENCH_RUNS`        | `3`              | Measured runs per model × scenario     |
+| `BENCH_NUM_PREDICT` | `256`            | Output tokens in the generation scenario |
+| `OLLAMA_URL`        | `http://localhost:11434` | API endpoint to benchmark      |
+
 ## Roadmap
 
 - [x] **M1** — Ollama via docker-compose, pinned versions, smoke test
-- [ ] **M2** — Benchmark harness: tokens/s, time-to-first-token, VRAM usage
+- [x] **M2** — Benchmark harness: tokens/s, time-to-first-token, VRAM usage
       per model × quantization × hardware, auto-generated results table
 - [ ] **M3** — vLLM alongside Ollama, same benchmarks, when-to-pick-which guide
 - [ ] **M4** — Kubernetes manifests (GPU resources, model persistence)

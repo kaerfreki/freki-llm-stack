@@ -1,0 +1,1 @@
+Explain in three paragraphs why an engineering team might choose to run open-weights language models on its own hardware instead of calling a hosted API. Cover confidentiality, cost at scale, and operational trade-offs.

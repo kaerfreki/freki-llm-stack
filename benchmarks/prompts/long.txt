@@ -1,0 +1,110 @@
+Summarize the following infrastructure assessment report in one short paragraph.
+
+---
+
+INFRASTRUCTURE ASSESSMENT REPORT — SELF-HOSTED INFERENCE PILOT
+
+1. Background and scope
+
+The platform team was asked to evaluate whether the organisation's internal
+document-processing workloads could be served by open-weights language models
+running on hardware we own, instead of the metered external API used today.
+The evaluation covers model selection, hardware sizing, deployment mechanics,
+observability, and a first-order cost comparison. It deliberately excludes
+fine-tuning and retrieval pipelines, which are tracked as separate work
+streams. The pilot ran for six weeks on a single GPU workstation before being
+promoted to a two-node staging environment.
+
+2. Workload characterisation
+
+Three workloads were profiled. The first is batch summarisation of internal
+technical reports, typically two to eight pages of dense prose, submitted in
+bursts of up to four hundred documents at the end of each week. The second is
+an interactive assistant used by the engineering group for code review
+preparation, where latency matters more than raw throughput: a response that
+begins streaming within a second feels instantaneous, while anything beyond
+three seconds is perceived as broken. The third is a nightly classification
+pass over the ticket backlog, which is throughput-bound and entirely
+insensitive to latency. These three profiles pull the design in different
+directions, and much of the report is about reconciling them on shared
+hardware.
+
+3. Model selection
+
+Candidate models were drawn from the current generation of open-weights
+releases in the four-to-thirty-five-billion-parameter range. Smaller models
+in the four-to-nine-billion class fit comfortably in consumer GPU memory at
+four-bit quantization and deliver interactive-grade latency, but their
+summaries of long technical documents lose numerical detail that reviewers
+flagged as unacceptable. Mid-size models around twelve billion parameters
+were the sweet spot for the summarisation workload. The thirty-five-billion
+model produced the strongest outputs across every task but does not fit in
+sixteen gigabytes of video memory even at four-bit quantization, forcing
+partial offload to system memory and cutting generation speed by an order of
+magnitude. The team's conclusion is that model choice must be made per
+workload rather than globally, which the serving layer must support without
+operational gymnastics.
+
+4. Quantization findings
+
+Four-bit and eight-bit quantized builds of the same nine-billion-parameter
+model were compared on identical prompts. The eight-bit build consumed
+roughly fifty percent more video memory and generated tokens measurably
+slower, while blind review of the outputs found no consistent quality
+difference on the summarisation and classification tasks. For the workloads
+in scope, four-bit quantization is the default recommendation; the eight-bit
+builds are retained only for the periodic quality-regression suite.
+
+5. Deployment mechanics
+
+The pilot standardised on a containerised runtime with the GPU passed
+through via the vendor toolkit, models persisted in a named volume, and all
+tunables surfaced as environment variables checked into an example file. The
+single most valuable operational property proved to be full reproducibility
+from a clean host: the team re-imaged the workstation twice during the pilot
+and was back to a serving state in under fifteen minutes each time, model
+downloads aside. Version pinning of the runtime image caught one regression
+that would otherwise have reached the interactive assistant unannounced.
+
+6. Observability
+
+Three metrics turned out to carry nearly all the signal: time to first
+token, sustained generation rate in tokens per second, and peak video-memory
+occupancy per loaded model. Time to first token degrades first when the
+prompt grows or the model spills into system memory, so it is the leading
+indicator for capacity problems. Peak memory occupancy determines how many
+models can be kept resident simultaneously, which in turn drives the
+keep-alive policy: evicting a model to make room costs a full reload,
+typically several seconds, which is fatal for the interactive workload but
+irrelevant for the nightly batch.
+
+7. Cost comparison
+
+At current external-API pricing, the weekly summarisation burst alone costs
+more per month than the amortised price of the workstation used in the
+pilot, including its share of power and rack space over a three-year
+horizon. The interactive assistant is harder to price because its value is
+in latency and confidentiality rather than volume. The nightly
+classification pass is cheap either way. The honest summary is that
+self-hosting wins decisively on predictable high-volume workloads, breaks
+even on interactive ones, and is not primarily a cost decision at all for
+workloads that exist only because the data cannot leave the building.
+
+8. Risks and open questions
+
+The main risks identified are single-point-of-failure hardware, the absence
+of a tested procedure for security patching of the runtime under load, and
+key-person concentration in one engineer who set up the pilot. Open
+questions for the next phase include multi-node scheduling, authenticated
+access from outside the trusted network segment, and whether the
+thirty-five-billion model's quality advantage justifies dedicated hardware
+with more video memory.
+
+9. Recommendation
+
+Proceed to a limited production rollout for the batch summarisation and
+nightly classification workloads on the existing hardware, keep the
+interactive assistant on the pilot workstation behind the internal network
+boundary, and defer any purchase of larger GPUs until the quality
+requirements of the thirty-five-billion model are validated against a
+production month of real documents.

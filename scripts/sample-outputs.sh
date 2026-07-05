@@ -18,7 +18,7 @@ BENCH_MODELS=${BENCH_MODELS:-"qwen3.5:4b mistral:7b llama3.1:8b ornith:9b qwen3.
 GALLERY_NUM_PREDICT=${GALLERY_NUM_PREDICT:-6144}
 GALLERY_NUM_CTX=${GALLERY_NUM_CTX:-8192}
 
-TASKS="summarize extract code reasoning"
+TASKS=${GALLERY_TASKS:-"summarize extract code reasoning trading"}
 
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
@@ -39,6 +39,7 @@ task_blurb() {
     extract) echo "Extract and deduplicate the ERROR lines of a service log into a JSON array — instruction following and structured output." ;;
     code) echo "Implement a duration-string parser in Python with validation, docstring and examples." ;;
     reasoning) echo "A GPU memory-budget word problem with a single verifiable answer (93 sessions)." ;;
+    trading) echo "Analyse a fixed 10-day price series — verifiable statistics (total return +4.9 %, max drawdown −6.8 %, worst day 7 at −2.7 %, SMA5 103.26 vs SMA10 102.99) plus a structured signal recommendation." ;;
     esac
 }
 
@@ -47,14 +48,25 @@ generate() {
     local model=$1 prompt_file=$2 payload out
     # Model-default temperature (temp 0 sends thinking models into pathologically
     # verbose reasoning); fixed seed keeps a given run reproducible.
-    payload=$(jq -n --arg model "$model" --rawfile prompt "$prompt_file" \
-        --argjson np "$GALLERY_NUM_PREDICT" --argjson ctx "$GALLERY_NUM_CTX" \
-        '{model:$model, prompt:$prompt, stream:false,
-          options:{seed:42, num_predict:$np, num_ctx:$ctx}}')
-    out=$(curl -s "$OLLAMA_URL/api/generate" -d "$payload")
-    if err=$(jq -r '.error // empty' <<<"$out") && [ -n "$err" ]; then
+    local ctx=$GALLERY_NUM_CTX err ctx_note=""
+    while :; do
+        payload=$(jq -n --arg model "$model" --rawfile prompt "$prompt_file" \
+            --argjson np "$GALLERY_NUM_PREDICT" --argjson ctx "$ctx" \
+            '{model:$model, prompt:$prompt, stream:false,
+              options:{seed:42, num_predict:$np, num_ctx:$ctx}}')
+        out=$(curl -s "$OLLAMA_URL/api/generate" -d "$payload")
+        err=$(jq -r '.error // empty' <<<"$out")
+        [ -z "$err" ] && break
+        # Whether a big model fits depends on what else (desktop included) is
+        # using VRAM at load time — degrade the context instead of dying.
+        if grep -qi 'out of memory' <<<"$err" && [ "$ctx" -gt 2048 ]; then
+            ctx=$((ctx / 2))
+            log "$model: GPU out of memory, retrying with num_ctx=$ctx"
+            ctx_note="_[context window reduced to $ctx tokens after a GPU out-of-memory error]_"
+            continue
+        fi
         die "$model: $err"
-    fi
+    done
     local answer
     answer=$(jq -r '.response' <<<"$out" |
         awk '/<think>/ {skip=1} /<\/think>/ {skip=0; next} !skip' |
@@ -63,6 +75,9 @@ generate() {
         printf '%s\n' "$answer"
     else
         printf '_[the model produced no final answer — it was still reasoning when it hit the token budget]_\n'
+    fi
+    if [ -n "$ctx_note" ]; then
+        printf '\n%s\n' "$ctx_note"
     fi
     local thinking_words
     thinking_words=$(jq -r '.thinking // ""' <<<"$out" | wc -w)
@@ -101,8 +116,16 @@ for task in $TASKS; do
     } >"$BENCH_DIR/outputs/.tmp/$task.md"
 done
 
+unload_all() {
+    curl -s "$OLLAMA_URL/api/ps" | jq -r '.models[].name' | while read -r m; do
+        curl -s "$OLLAMA_URL/api/generate" \
+            -d "$(jq -n --arg m "$m" '{model:$m, keep_alive:0}')" >/dev/null
+    done
+}
+
 # Model-major order so each model is loaded into VRAM only once.
 for model in $BENCH_MODELS; do
+    unload_all # co-resident models can OOM the big ones at num_ctx 8192
     for task in $TASKS; do
         log "$model: $task"
         {

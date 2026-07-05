@@ -1,0 +1,23 @@
+You are the analyst module of an automated trading bot. Below are the last
+10 daily closing prices of the fictional asset FRK. Analyse them and report:
+
+1. Total return over the period, in percent.
+2. Maximum drawdown over the period, in percent.
+3. The worst single-day return and on which day it occurred.
+4. The 5-day and 10-day simple moving averages as of day 10.
+5. A final JSON object with exactly these keys:
+   {"signal": "long"|"flat"|"short", "confidence": "low"|"medium"|"high",
+    "rationale": "<max two sentences>", "key_risk": "<one sentence>"}
+
+Show your calculations. Round all percentages to one decimal place.
+
+Day  1: 100.0
+Day  2: 102.5
+Day  3: 101.8
+Day  4: 105.2
+Day  5: 104.1
+Day  6: 106.8
+Day  7: 103.9
+Day  8: 101.2
+Day  9:  99.5
+Day 10: 104.9

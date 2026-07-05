@@ -270,6 +270,14 @@ cmd_report() {
                 printf "| `%s` | %s ms | %.0f tok/s | %.1f tok/s |\n", $1, $3, $5, $4
             }' <<<"$agg"
         echo
+        echo "## Output quality"
+        echo
+        echo "Quality is a property of the model, not of this stack, so no scores are"
+        echo "published here — instead, [unedited sample outputs](outputs/) of every"
+        echo "benchmarked model on four fixed tasks (summarization, structured"
+        echo "extraction, coding, arithmetic reasoning) are provided for side-by-side"
+        echo "comparison. Generate them with \`scripts/sample-outputs.sh\`."
+        echo
         echo "## Method"
         echo
         echo "- Per model and scenario: 1 discarded warm-up (its load time is the"

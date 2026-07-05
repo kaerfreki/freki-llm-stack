@@ -1,0 +1,6 @@
+A GPU has 16 GiB of memory. A model's weights occupy 9.3 GiB once loaded,
+and the runtime needs a fixed 1.2 GiB of overhead. Each concurrent session
+additionally needs KV-cache memory of 1.5 MiB per 100 tokens of context.
+Every session uses a full 4,000-token context. How many concurrent sessions
+fit on the GPU? Show your working step by step, then give the final number
+on its own line. Use 1 GiB = 1024 MiB.

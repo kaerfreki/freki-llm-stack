@@ -1,0 +1,8 @@
+Write a Python function `parse_duration(s: str) -> int` that parses duration
+strings like "2h15m", "45s", "1d2h30m5s" into a total number of seconds.
+Supported units: d, h, m, s. Units may be omitted but must appear in
+descending order at most once each; the string must contain at least one
+component. Raise ValueError with a helpful message on invalid input (empty
+string, unknown unit, wrong order, repeated unit, bare numbers). Include a
+docstring with examples. Then show three example calls with their expected
+results. Do not use any imports except `re` if you need it.

@@ -38,9 +38,10 @@ Measured on **2026-07-05**:
 
 Quality is a property of the model, not of this stack, so no scores are
 published here — instead, [unedited sample outputs](outputs/) of every
-benchmarked model on five fixed tasks (summarization, structured
-extraction, coding, arithmetic reasoning, trading analysis) are provided
-for side-by-side comparison. Generate them with `scripts/sample-outputs.sh`.
+benchmarked model on seven fixed tasks (summarization, structured
+extraction, coding, arithmetic reasoning, trading analysis, legal-clause
+extraction, RAG faithfulness) are provided for side-by-side comparison.
+Generate them with `scripts/sample-outputs.sh`.
 
 ## Method
 

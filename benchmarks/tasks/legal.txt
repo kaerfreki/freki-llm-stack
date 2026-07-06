@@ -1,0 +1,50 @@
+Extract the key terms of the contract excerpt below into a JSON object with
+exactly these keys: "provider", "client", "effective_date",
+"initial_term_months", "renewal_notice_days", "convenience_termination",
+"breach_cure_days", "liability_cap", "liability_cap_exceptions",
+"governing_law", "payment_terms". Base every value strictly on the contract
+text; do not invent or assume anything. Output only the JSON object.
+
+---
+
+MASTER SERVICES AGREEMENT (excerpt)
+
+1. Parties. This Agreement is entered into between Vextron Analytics SAS,
+registered with the RCS of Lyon under no. 512 384 776 (the "Provider"), and
+Halden Logistics GmbH, Hamburg (the "Client").
+
+2. Term. This Agreement takes effect on 15 March 2026 (the "Effective
+Date") for an initial term of twenty-four (24) months. It renews
+automatically for successive twelve (12) month periods unless either party
+gives written notice of non-renewal at least ninety (90) days before the
+end of the then-current term.
+
+3. Fees and Payment. The Client shall pay the Provider a fixed fee of
+EUR 18,500 per month, invoiced monthly in advance. Invoices are payable
+within forty-five (45) days of the invoice date. Fees are indexed by 3% at
+each renewal.
+
+4. Termination. (a) The Client may terminate this Agreement for
+convenience at any time after the twelfth (12th) month of the initial
+term, subject to sixty (60) days' prior written notice. (b) Either party
+may terminate for material breach if the breaching party fails to cure
+within thirty (30) days of written notice of the breach.
+
+5. Liability. Each party's aggregate liability under this Agreement is
+capped at the total fees paid by the Client in the twelve (12) months
+preceding the event giving rise to the claim. This cap does not apply to
+breaches of Section 6 (Confidentiality) or Section 7 (Intellectual
+Property).
+
+6. Confidentiality. Each party shall protect the other party's
+confidential information with at least the care it applies to its own.
+
+7. Intellectual Property. All pre-existing intellectual property remains
+the property of its owner; deliverables are licensed, not assigned.
+
+8. Data Protection. All Client data shall be hosted in data centres
+located within the European Union and shall not be transferred outside the
+EEA without the Client's prior written consent.
+
+9. Governing Law. This Agreement is governed by French law. The parties
+submit to the exclusive jurisdiction of the Tribunal de commerce de Lyon.

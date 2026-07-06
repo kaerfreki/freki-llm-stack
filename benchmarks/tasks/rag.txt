@@ -1,0 +1,43 @@
+Answer the questions below using ONLY the document that follows. If the
+document does not contain the information needed to answer a question,
+reply for that question with exactly: Not in the document.
+Answer each question in one line, numbered 1 to 6.
+
+Questions:
+1. At what threshold does the VRAM usage alert fire?
+2. How often is the model volume backed up, and how long are backups kept?
+3. Which company manufactures the GPUs used by the platform?
+4. How long does a model stay loaded in memory after its last request?
+5. What caused the March service outage?
+6. On which TCP port does the inference API listen?
+
+---
+
+INFERENCE PLATFORM — OPERATIONS RUNBOOK (v1.4)
+
+Scope. This runbook covers day-2 operations of the self-hosted inference
+platform serving open-weights language models to internal applications.
+
+Monitoring. Dashboards track time to first token, sustained generation
+rate, and GPU memory occupancy. A warning alert fires when GPU memory
+usage stays above 14 GiB for more than ten consecutive minutes; a critical
+alert fires when any inference request fails with an out-of-memory error.
+Alert fatigue reviews happen monthly.
+
+Model lifecycle. Models are pulled only from the internal registry mirror,
+never directly from the public internet. A model stays loaded in GPU
+memory for five minutes after the last request it served, after which it
+is evicted to make room for other models. Evictions are logged.
+
+Backups. The model volume is backed up nightly at 02:00 UTC with a
+fourteen-day retention window. Backup restoration is rehearsed on the
+first Tuesday of every month; the March rehearsal surfaced a permissions
+regression that was fixed in v1.3 of this runbook.
+
+Change management. The runtime container image is version-pinned. After
+the March service outage, all image upgrades require a staging soak of at
+least 48 hours and a rollback plan filed in the change ticket before
+production rollout.
+
+On-call. The platform is covered by a weekly on-call rotation of three
+engineers. Escalation beyond the rotation goes to the infrastructure lead.

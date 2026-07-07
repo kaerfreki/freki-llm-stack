@@ -68,3 +68,19 @@
 
 ![flux1-dev-fp8 scene](images/flux1-dev-fp8_scene.png)
 
+## sprite
+
+> A 2D video game character sprite sheet for a side-scrolling platformer, pixel art style: a walk cycle of a knight in blue armor holding a sword, exactly 4 frames arranged in a horizontal row, each frame showing a different leg position, consistent character design, proportions and color palette across all four frames, plain solid magenta background for chroma-key removal, no shadows, crisp pixel edges, 32-bit retro game aesthetic
+
+**`sd_xl_base_1.0.safetensors`**
+
+![sd_xl_base_1.0 sprite](images/sd_xl_base_1.0_sprite.png)
+
+**`flux1-schnell-fp8.safetensors`**
+
+![flux1-schnell-fp8 sprite](images/flux1-schnell-fp8_sprite.png)
+
+**`flux1-dev-fp8.safetensors`**
+
+![flux1-dev-fp8 sprite](images/flux1-dev-fp8_sprite.png)
+

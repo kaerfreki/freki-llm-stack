@@ -1,0 +1,10 @@
+model,run,total_s,vram_peak_mib,ram_used_peak_mib
+sd_xl_base_1.0.safetensors,1,5.40,10338,25163
+sd_xl_base_1.0.safetensors,2,5.14,10352,25147
+sd_xl_base_1.0.safetensors,3,5.39,10348,25095
+flux1-schnell-fp8.safetensors,1,4.62,15439,25249
+flux1-schnell-fp8.safetensors,2,4.12,15436,25282
+flux1-schnell-fp8.safetensors,3,4.12,15426,25299
+flux1-dev-fp8.safetensors,1,46.08,15288,26052
+flux1-dev-fp8.safetensors,2,45.80,15458,26002
+flux1-dev-fp8.safetensors,3,46.23,15426,26195

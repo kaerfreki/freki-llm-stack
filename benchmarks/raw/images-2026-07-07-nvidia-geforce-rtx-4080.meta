@@ -1,0 +1,13 @@
+date=2026-07-07
+gpu=NVIDIA GeForce RTX 4080, 16376 MiB
+driver=595.71.05
+comfyui=0.27.0
+runs=3
+resolution=1024x1024
+prompt=a weathered lighthouse on a rocky cliff at golden hour, dramatic clouds, photorealistic, highly detailed
+steps_sd_xl_base_1.0.safetensors=25
+cfg_sd_xl_base_1.0.safetensors=7.0
+steps_flux1-schnell-fp8.safetensors=4
+cfg_flux1-schnell-fp8.safetensors=1.0
+steps_flux1-dev-fp8.safetensors=50
+cfg_flux1-dev-fp8.safetensors=1.0

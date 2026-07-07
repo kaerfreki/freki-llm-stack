@@ -1,0 +1,23 @@
+services:
+  comfyui:
+    # yanwk/comfyui-boot has no version-numbered releases, only rolling
+    # CUDA-variant tags, so it's pinned by digest for reproducibility.
+    image: yanwk/comfyui-boot:${COMFYUI_IMAGE_TAG:-cu130-slim-v2}@${COMFYUI_IMAGE_DIGEST:-sha256:1f36e6aece5aaf938c62b9a62171382c6a1a1377f318805e5b51030ae027e3b1}
+    container_name: freki-comfyui
+    restart: unless-stopped
+    ports:
+      - "${COMFYUI_HOST_PORT:-8188}:8188"
+    volumes:
+      - comfyui-models:/root/ComfyUI/models
+      - comfyui-output:/root/ComfyUI/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  comfyui-models:
+  comfyui-output:

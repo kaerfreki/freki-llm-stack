@@ -131,10 +131,11 @@ time per image, images/minute, and peak VRAM/RAM, at each checkpoint's own
 commonly published default steps/CFG rather than one setting forced on all
 three. As with the text benchmarks, output quality is not scored — instead
 [`scripts/image-gallery.sh`](scripts/image-gallery.sh) generates unedited
-images from every checkpoint on four fixed prompts (photorealistic portrait,
+images from every checkpoint on five fixed prompts (photorealistic portrait,
 product shot, in-image typography, a multi-subject scene with an exact
-object count) into [`benchmarks/outputs/images.md`](benchmarks/outputs/images.md)
-for side-by-side comparison.
+object count, a 4-frame game character sprite sheet) into
+[`benchmarks/outputs/images.md`](benchmarks/outputs/images.md) for
+side-by-side comparison.
 
 ```bash
 ./scripts/bench-images.sh run    # writes benchmarks/RESULTS-images.md

@@ -15,7 +15,7 @@ BENCH_DIR=$(dirname "$SCRIPT_DIR")/benchmarks
 COMFYUI_URL=${COMFYUI_URL:-http://localhost:8188}
 WIDTH=${GALLERY_IMAGE_WIDTH:-1024}
 HEIGHT=${GALLERY_IMAGE_HEIGHT:-1024}
-PROMPTS=${GALLERY_IMAGE_PROMPTS:-"portrait product typography scene"}
+PROMPTS=${GALLERY_IMAGE_PROMPTS:-"portrait product typography scene sprite"}
 
 # checkpoint:family:steps:cfg:guidance — same per-model defaults as bench-images.sh
 ALL_MODEL_SPECS=(

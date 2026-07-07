@@ -16,15 +16,19 @@ bare Linux box with an NVIDIA GPU to a working, measurable inference endpoint.
 
 ## Architecture
 
-Current scope (milestone M1): one Ollama instance serving the OpenAI-compatible
-Ollama API, models persisted in a named volume.
+Two independent services, each in its own compose project: Ollama for text
+models, ComfyUI for image generation. Both persist models in a named volume
+and share the host's GPU.
 
 ```mermaid
 flowchart LR
     client([Client / your app]) -->|"HTTP :11434"| ollama
+    client -->|"HTTP :8188"| comfyui
     subgraph host["Docker host with NVIDIA GPU"]
-        ollama["Ollama container<br/>(ollama/ollama:0.31.1)"] --> vol[("model volume")]
+        ollama["Ollama container<br/>(ollama/ollama:0.31.1)"] --> ovol[("model volume")]
         ollama -. offloads to .-> gpu[["GPU"]]
+        comfyui["ComfyUI container<br/>(yanwk/comfyui-boot)"] --> cvol[("checkpoint volume")]
+        comfyui -. offloads to .-> gpu
     end
 ```
 
@@ -96,6 +100,46 @@ Reproduce with:
 | `BENCH_RUNS`        | `3`              | Measured runs per model × scenario     |
 | `BENCH_NUM_PREDICT` | `256`            | Output tokens in the generation scenario |
 | `OLLAMA_URL`        | `http://localhost:11434` | API endpoint to benchmark      |
+
+## Image generation
+
+A second, independent stack for text-to-image models: [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+via the [`yanwk/comfyui-boot`](https://github.com/YanWenKun/ComfyUI-Docker) image (no
+official ComfyUI image exists; this one is actively maintained and pinned by
+digest since it has no versioned releases). Benchmarked checkpoints: SDXL
+Base 1.0, FLUX.1-schnell and FLUX.1-dev, all fp8/single-file, ~6.9–17.2 GB
+each, ~39 GB total — all three download without a Hugging Face token.
+
+```bash
+cd compose/comfyui
+docker compose up -d
+../../scripts/pull-image-models.sh   # ~39 GB, first run only
+```
+
+**Licensing matters here.** SDXL Base 1.0 (CreativeML Open RAIL++-M) and
+FLUX.1-schnell (Apache 2.0) are both commercially permissive. **FLUX.1-dev's
+weights are licensed for non-commercial use only** — running it in a
+revenue-generating production service requires a paid license from Black
+Forest Labs. Its *output images*, however, are explicitly licensed for any
+purpose, commercial included. Treat FLUX.1-dev here as the quality-ceiling
+comparison point, not a deployment recommendation, unless you've secured
+that license.
+
+Full results: [`benchmarks/RESULTS-images.md`](benchmarks/RESULTS-images.md).
+The harness ([`scripts/bench-images.sh`](scripts/bench-images.sh)) measures
+time per image, images/minute, and peak VRAM/RAM, at each checkpoint's own
+commonly published default steps/CFG rather than one setting forced on all
+three. As with the text benchmarks, output quality is not scored — instead
+[`scripts/image-gallery.sh`](scripts/image-gallery.sh) generates unedited
+images from every checkpoint on four fixed prompts (photorealistic portrait,
+product shot, in-image typography, a multi-subject scene with an exact
+object count) into [`benchmarks/outputs/images.md`](benchmarks/outputs/images.md)
+for side-by-side comparison.
+
+```bash
+./scripts/bench-images.sh run    # writes benchmarks/RESULTS-images.md
+./scripts/image-gallery.sh       # writes benchmarks/outputs/images.md
+```
 
 ## Roadmap
 

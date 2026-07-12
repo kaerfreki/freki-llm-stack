@@ -155,6 +155,33 @@ comparison.
 | `BENCH_NUM_PREDICT` | `256`                    | Output tokens in the generation scenario |
 | `OLLAMA_URL`        | `http://localhost:11434` | API endpoint to benchmark                |
 
+### Context-window sweep (OpenCode / long sessions)
+
+Ollama only **reserves** KV for `options.num_ctx` (or a Modelfile
+`PARAMETER num_ctx`). Models like `ornith:9b` natively allow 256k tokens, but
+the server default is much smaller — long OpenCode sessions hit the ceiling
+even though the weights could go further.
+
+[`scripts/bench-ctx.sh`](scripts/bench-ctx.sh) sweeps `num_ctx` on a single
+model (default `ornith:9b`) and records VRAM, cold load, TTFT, generation and
+prefill rates at each size. Results: [`benchmarks/RESULTS-ctx.md`](benchmarks/RESULTS-ctx.md).
+
+```bash
+./scripts/bench-ctx.sh run            # writes benchmarks/RESULTS-ctx.md
+# BENCH_MODEL=ornith:9b BENCH_CTX_SIZES="8192 16384 32768 65536" ./scripts/bench-ctx.sh run
+```
+
+| Variable            | Default | Purpose |
+| ------------------- | ------- | ------- |
+| `BENCH_MODEL`       | `ornith:9b` | Model to sweep |
+| `BENCH_CTX_SIZES`   | `2048 … 131072` | Space-separated `num_ctx` values |
+| `BENCH_PREFILL_FRAC`| `0.75` | Fraction of `num_ctx` filled in the prefill scenario |
+| `BENCH_RUNS`        | `3` | Measured runs per size × scenario |
+
+To persist a larger window for OpenCode, create a thin Modelfile derivative
+(e.g. `PARAMETER num_ctx 32768`) or pass `num_ctx` in each request — pick a
+value from the results table that still fits your GPU.
+
 ## Benchmarks — vLLM
 
 Full results: [`benchmarks/RESULTS-vllm.md`](benchmarks/RESULTS-vllm.md)

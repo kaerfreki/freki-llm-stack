@@ -1,0 +1,50 @@
+services:
+  vllm:
+    # Official OpenAI-compatible server. Tag is pinned; bump deliberately.
+    # ENTRYPOINT is `vllm serve`; the model id is the first argument.
+    image: vllm/vllm-openai:${VLLM_IMAGE_TAG:-v0.25.0}
+    container_name: freki-vllm
+    restart: unless-stopped
+    ports:
+      - "${VLLM_HOST_PORT:-8000}:8000"
+    volumes:
+      # Hugging Face hub cache — weights survive container recreation
+      - vllm-huggingface:/root/.cache/huggingface
+    environment:
+      # Optional; only needed for gated models (not required by the default map)
+      HF_TOKEN: ${HF_TOKEN:-}
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
+    # Shared memory for CUDA IPC; required under load
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      # Default matches Ollama's qwen3.5:4b at ~4-bit (fits 16 GB easily).
+      # Larger map rows (9B multimodal AWQ, FP8, 12B) need headroom — see
+      # benchmarks/MODEL-MAP-vllm.md.
+      - ${VLLM_MODEL:-cyankiwi/Qwen3.5-4B-AWQ-INT8-INT4}
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      # 4096 covers the long-prompt bench (~1.2k tokens) with room for generation
+      - --max-model-len
+      - "${VLLM_MAX_MODEL_LEN:-4096}"
+      # Default 0.80 leaves headroom for the desktop compositor on a single
+      # consumer GPU (~2 GiB already in use on a typical KDE session).
+      - --gpu-memory-utilization
+      - "${VLLM_GPU_MEMORY_UTILIZATION:-0.80}"
+      - --dtype
+      - "${VLLM_DTYPE:-auto}"
+      - --trust-remote-code
+      # Skip CUDA-graph capture — saves multi-GB on 16 GB cards when loading
+      # multimodal Qwen3.5 / Gemma3 checkpoints (slight single-stream cost).
+      - --enforce-eager
+
+volumes:
+  vllm-huggingface:

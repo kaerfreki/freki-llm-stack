@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: comfyui
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: comfyui
+  ports:
+    - name: http
+      port: 8188
+      targetPort: http

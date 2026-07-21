@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  labels:
+    app.kubernetes.io/name: vllm
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vllm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vllm
+        app.kubernetes.io/part-of: freki-llm-stack
+    spec:
+      # runtimeClassName: nvidia
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: vllm
+          # Pinned the same way as compose/vllm (bump deliberately).
+          image: vllm/vllm-openai:v0.25.0
+          imagePullPolicy: IfNotPresent
+          # ENTRYPOINT is already `vllm serve`; args are the model + flags.
+          # Default matches compose: ~4-bit counterpart of Ollama qwen3.5:4b.
+          args:
+            - cyankiwi/Qwen3.5-4B-AWQ-INT8-INT4
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "8000"
+            - --max-model-len
+            - "4096"
+            - --gpu-memory-utilization
+            - "0.90"
+            - --dtype
+            - auto
+            - --trust-remote-code
+            - --enforce-eager
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            # Optional: create secret freki-hf-token with key token for gated models.
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: freki-hf-token
+                  key: token
+                  optional: true
+            - name: HUGGING_FACE_HUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: freki-hf-token
+                  key: token
+                  optional: true
+            - name: HF_HOME
+              value: /root/.cache/huggingface
+          resources:
+            requests:
+              cpu: "1"
+              memory: 8Gi
+              nvidia.com/gpu: "1"
+            limits:
+              memory: 48Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /root/.cache/huggingface
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 40
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 10
+      volumes:
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: vllm-huggingface
+        # vLLM needs a large /dev/shm (compose uses ipc: host).
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi

@@ -263,14 +263,41 @@ side-by-side comparison.
 ./scripts/image-gallery.sh       # writes benchmarks/outputs/images.md
 ```
 
+## Kubernetes
+
+The same three stacks ship as independent Kustomize packages under
+[`k8s/`](k8s/), with **GPU resource requests**, **Recreate** deploy strategy
+(RWO model volumes), and **PVCs** for weight persistence. Full notes:
+[`k8s/README.md`](k8s/README.md).
+
+Prerequisites: a cluster with the NVIDIA device plugin (or GPU Operator), a
+default `StorageClass` for `ReadWriteOnce` volumes, and `kubectl`.
+
+```bash
+kubectl apply -k k8s/ollama
+kubectl -n freki-llm rollout status deploy/ollama
+kubectl -n freki-llm port-forward svc/ollama 11434:11434
+./scripts/smoke-test.sh
+```
+
+| Package | In-cluster Service | PVC |
+| --- | --- | --- |
+| `k8s/ollama` | `ollama.freki-llm:11434` | `ollama-models` 100 Gi |
+| `k8s/vllm` | `vllm.freki-llm:8000` | `vllm-huggingface` 100 Gi |
+| `k8s/comfyui` | `comfyui.freki-llm:8188` | models 80 Gi + output 20 Gi |
+
+Schedule **one** GPU workload at a time per card — the device plugin will
+happily pack pods, but a 16 GB consumer GPU will not.
+
 ## Roadmap
 
 - [x] **M1** — Ollama via docker-compose, pinned versions, smoke test
 - [x] **M2** — Benchmark harness: tokens/s, time-to-first-token, VRAM usage
       per model × quantization × hardware, auto-generated results table
 - [x] **M3** — vLLM alongside Ollama, same benchmarks, when-to-pick-which guide
-- [ ] **M4** — Kubernetes manifests (GPU resources, model persistence)
+- [x] **M4** — Kubernetes manifests (GPU resources, model persistence)
 - [ ] **M5** — Monitoring, reverse proxy with auth, sizing guide
+
 
 Benchmark numbers published here will always state the exact hardware and
 tool versions they were measured on.

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: comfyui-models
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # SDXL + FLUX checkpoints ≈ 39 GB; leave headroom for extras.
+      storage: 80Gi
+  # storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: comfyui-output
+  labels:
+    app.kubernetes.io/name: comfyui
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  # storageClassName: ""

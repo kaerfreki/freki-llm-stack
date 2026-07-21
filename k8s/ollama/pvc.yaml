@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Room for several GGUF quants (the full Ollama bench matrix is ~70 GB).
+      storage: 100Gi
+  # storageClassName: ""   # set explicitly if the cluster default is wrong

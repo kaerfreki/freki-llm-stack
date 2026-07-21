@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-huggingface
+  labels:
+    app.kubernetes.io/name: vllm
+    app.kubernetes.io/part-of: freki-llm-stack
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Hugging Face hub cache for the default AWQ matrix (~50–80 GB with headroom).
+      storage: 100Gi
+  # storageClassName: ""
